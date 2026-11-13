@@ -1,5 +1,6 @@
 import { AIRPORTS } from './airports.mjs';
 import { FARES, calculateItinerary, fmt } from './logic.mjs';
+import { getSnapshots, saveSnapshots, initEnhancements } from './enhancements.mjs';
 
 const STORAGE_KEY = 'flight-miles-tracker-v1';
 const el = id => document.getElementById(id);
@@ -167,24 +168,30 @@ function renderStatus(){
   select.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
   if(years.includes(Number(previous))) select.value=previous;
   const yr=select.value;
+  const snapshots=getSnapshots();
+  const tkBase=snapshots.tk||{};
+  const mmBase=snapshots.mm?.asOf?.startsWith(yr)?snapshots.mm:{};
+  const afterBaseline=(f,snapshot)=>!snapshot.asOf||f.date>snapshot.asOf;
   const isFlown=f=>f.status==='flown'&&f.date<=today;
   const tkEligible=f=>f.programme==='tk'&&f.date>=dateISO(priorYear)&&f.date<=today;
-  const tkEarned=flights.filter(f=>tkEligible(f)&&isFlown(f)).reduce((v,f)=>v+clamp(f.tk.statusMiles),0);
+  const tkEarned=clamp(tkBase.statusMiles)+flights.filter(f=>tkEligible(f)&&isFlown(f)&&afterBaseline(f,tkBase)).reduce((v,f)=>v+clamp(f.tk.statusMiles),0);
+  const tkAward=clamp(tkBase.awardMiles)+flights.filter(f=>f.programme==='tk'&&isFlown(f)&&afterBaseline(f,tkBase)).reduce((v,f)=>v+clamp(f.tk.awardMiles),0);
   const tkProjected=flights.filter(f=>f.programme==='tk'&&f.status==='planned'&&f.date>=today&&f.date<=dateISO(nextYear)).reduce((v,f)=>v+clamp(f.tk.statusMiles),0);
-  const mmEarned=flights.filter(f=>f.programme==='mm'&&f.date.startsWith(yr)&&isFlown(f));
+  const mmEarned=flights.filter(f=>f.programme==='mm'&&f.date.startsWith(yr)&&isFlown(f)&&afterBaseline(f,mmBase));
   const mmProjected=flights.filter(f=>f.programme==='mm'&&f.date.startsWith(yr)&&f.status==='planned');
   const sum=(arr,key)=>arr.reduce((t,f)=>t+clamp(f.mm[key]),0);
-  const pts=sum(mmEarned,'points'),qpts=sum(mmEarned,'qualifyingPoints'),hon=sum(mmEarned,'honPoints');
+  const pts=clamp(mmBase.points)+sum(mmEarned,'points'),qpts=clamp(mmBase.qualifyingPoints)+sum(mmEarned,'qualifyingPoints'),hon=clamp(mmBase.honPoints)+sum(mmEarned,'honPoints');
+  const mmAward=clamp(mmBase.awardMiles)+sum(mmEarned,'awardMiles');
   const mP=sum(mmProjected,'points'),mQ=sum(mmProjected,'qualifyingPoints');
   const prog=(earned,planned,target,colour='')=>`<div class="track"><div class="fill ${colour}" style="width:${Math.min(100,100*(earned+planned)/target)}%"></div></div><div class="progress-caption">${fmt(earned)} earned${planned?` + ${fmt(planned)} planned`:''} · ${fmt(Math.max(0,target-earned-planned))} remaining (projected)</div>`;
-  el('status-cards').innerHTML=`<article class="status-card"><span class="programme-label">TURKISH MILES&SMILES</span><h3>Elite · Star Alliance Gold</h3><div class="subline">Qualification uses the preceding 12 months</div><div class="status-block"><div class="progress-header"><span>STATUS MILES</span><strong>${fmt(tkEarned)} / 40,000</strong></div>${prog(tkEarned,tkProjected,40000)}</div><div class="status-block"><div class="progress-header"><span>CLASSIC PLUS THRESHOLD</span><strong>${fmt(tkEarned)} / 25,000</strong></div>${prog(tkEarned,tkProjected,25000)}</div><div class="status-metrics"><div><label>ROLLING 12 MONTHS</label><strong>${fmt(tkEarned)}</strong></div><div><label>FUTURE PLANNED</label><strong>${fmt(tkProjected)}</strong></div></div><p class="hint">Initial qualification thresholds only. Renewal requirements differ; projected total is indicative, as older miles may expire from your 12-month window before planned flights.</p></article>
-  <article class="status-card"><span class="programme-label" style="color:#edc682">MILES & MORE · ${esc(yr)}</span><h3>Frequent Traveller / Senator</h3><div class="subline">Two targets must be met within the calendar year</div><div class="status-block"><div class="progress-header"><span>FREQUENT TRAVELLER · POINTS</span><strong>${fmt(pts)} / 650</strong></div>${prog(pts,mP,650,'gold')}<div class="progress-header" style="margin-top:16px"><span>QUALIFYING POINTS</span><strong>${fmt(qpts)} / 325</strong></div>${prog(qpts,mQ,325,'gold')}</div><div class="status-block"><div class="progress-header"><span>SENATOR · POINTS</span><strong>${fmt(pts)} / 2,000</strong></div>${prog(pts,mP,2000,'gold')}<div class="progress-header" style="margin-top:16px"><span>QUALIFYING POINTS</span><strong>${fmt(qpts)} / 1,000</strong></div>${prog(qpts,mQ,1000,'gold')}</div><div class="status-metrics"><div><label>POINTS EARNED</label><strong>${fmt(pts)}</strong></div><div><label>QUALIFYING</label><strong>${fmt(qpts)}</strong></div><div><label>HON CIRCLE</label><strong>${fmt(hon)}</strong></div></div></article>`;
+  el('status-cards').innerHTML=`<article class="status-card"><span class="programme-label">TURKISH MILES&SMILES</span><h3>Elite · Star Alliance Gold</h3><div class="subline">${tkBase.asOf?'Snapshot '+esc(tkBase.asOf)+' + subsequently logged flights':'Flights logged here only'} · rolling 12 months</div><div class="status-block"><div class="progress-header"><span>STATUS MILES</span><strong>${fmt(tkEarned)} / 40,000</strong></div>${prog(tkEarned,tkProjected,40000)}</div><div class="status-block"><div class="progress-header"><span>CLASSIC PLUS THRESHOLD</span><strong>${fmt(tkEarned)} / 25,000</strong></div>${prog(tkEarned,tkProjected,25000)}</div><div class="status-metrics"><div><label>ROLLING 12 MONTHS</label><strong>${fmt(tkEarned)}</strong></div><div><label>FUTURE PLANNED</label><strong>${fmt(tkProjected)}</strong></div><div><label>AWARD MILES*</label><strong>${fmt(tkAward)}</strong></div></div><p class="hint">*Award balances exclude redemptions after the snapshot. For rolling status, older snapshot credits may expire; refresh from your airline account regularly. Initial thresholds only; renewal differs.</p></article>
+  <article class="status-card"><span class="programme-label" style="color:#edc682">MILES & MORE · ${esc(yr)}</span><h3>Frequent Traveller / Senator</h3><div class="subline">${mmBase.asOf?'Snapshot '+esc(mmBase.asOf)+' + subsequently logged flights':'Flights logged here only'} · calendar year ${esc(yr)}</div><div class="status-block"><div class="progress-header"><span>FREQUENT TRAVELLER · POINTS</span><strong>${fmt(pts)} / 650</strong></div>${prog(pts,mP,650,'gold')}<div class="progress-header" style="margin-top:16px"><span>QUALIFYING POINTS</span><strong>${fmt(qpts)} / 325</strong></div>${prog(qpts,mQ,325,'gold')}</div><div class="status-block"><div class="progress-header"><span>SENATOR · POINTS</span><strong>${fmt(pts)} / 2,000</strong></div>${prog(pts,mP,2000,'gold')}<div class="progress-header" style="margin-top:16px"><span>QUALIFYING POINTS</span><strong>${fmt(qpts)} / 1,000</strong></div>${prog(qpts,mQ,1000,'gold')}</div><div class="status-metrics"><div><label>POINTS EARNED</label><strong>${fmt(pts)}</strong></div><div><label>QUALIFYING</label><strong>${fmt(qpts)}</strong></div><div><label>HON CIRCLE</label><strong>${fmt(hon)}</strong></div><div><label>AWARD MILES*</label><strong>${fmt(mmAward)}</strong></div></div><p class="hint">*Estimated award balance; redemptions and unlogged activity aren't included. Snapshots apply only to their calendar year.</p></article>`;
 }
 function download(name,body,mime){
   const blob=new Blob([body],{type:mime});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);
 }
-function exportJson(){download('flight-miles-backup.json',JSON.stringify({app:'Flight Miles Tracker',version:1,exportedAt:new Date().toISOString(),flights},null,2),'application/json');}
+function exportJson(){download('flight-miles-backup.json',JSON.stringify({app:'Flight Miles Tracker',version:2,exportedAt:new Date().toISOString(),flights,snapshots:getSnapshots()},null,2),'application/json');}
 function exportCsv(){
   const rows=[['Date','Origin','Destination','LOT booking class','Cabin','Distance (miles)','Credited programme','Status','Turkish status miles (comparison)','Turkish award miles (comparison)','Miles & More award miles (comparison)','Miles & More Points (comparison)','Miles & More Qualifying Points (comparison)','Miles & More HON Points (comparison)']];
   for(const f of [...flights].sort(flightSort))rows.push([f.date,f.origin,f.destination,f.fareClass,f.cabin,f.distance,f.programme==='tk'?'Turkish Miles&Smiles':'Miles & More',f.status,f.tk.statusMiles,f.tk.awardMiles,f.mm.awardMiles??'',f.mm.points,f.mm.qualifyingPoints,f.mm.honPoints]);
@@ -198,12 +205,14 @@ async function importJson(event){
     const contents=JSON.parse(await file.text());
     const incoming=Array.isArray(contents)?contents:contents.flights;
     if(!Array.isArray(incoming)||incoming.length>5000||!incoming.every(validFlight))throw new Error('This is not a valid Flight Miles Tracker backup.');
-    if(!confirm(`Import ${incoming.length} segments? Entries with matching IDs are skipped; existing flights are kept.`))return;
+    const withSnapshots=contents?.snapshots && typeof contents.snapshots==='object';
+    if(!confirm(`Import ${incoming.length} segments${withSnapshots?' and replace saved programme snapshots':''}? Entries with matching IDs are skipped.`))return;
     const ids=new Set(flights.map(f=>f.id));let count=0;
     for(const f of incoming){if(!ids.has(f.id)){flights.push(f);ids.add(f.id);count++;}}
     flights=flights.slice(-5000);
     if(!persist())throw new Error('Browser storage could not be updated.');
-    renderLog();alert(`${count} flight segments imported.`);
+    if(withSnapshots)saveSnapshots(contents.snapshots);
+    renderLog();renderStatus();alert(`${count} flight segments imported${withSnapshots?' along with starting balances':''}.`);
   }catch(err){alert(err.message||'Import failed.');}
   finally{event.target.value='';}
 }
@@ -239,6 +248,12 @@ function init(){
   el('export-csv').addEventListener('click',exportCsv);
   el('export-json').addEventListener('click',exportJson);
   el('import-json').addEventListener('change',importJson);
+  initEnhancements({airports:AIRPORTS,fares:FARES,calculate:calculateItinerary,addImported:(incoming)=>{
+    const existing=new Set(flights.map(f=>[f.date,f.origin,f.destination,f.fareClass,f.programme].join('|')));
+    let added=0;
+    for(const f of incoming){const key=[f.date,f.origin,f.destination,f.fareClass,f.programme].join('|');if(!existing.has(key)&&validFlight(f)){flights.unshift(f);existing.add(key);added++;}}
+    flights=flights.slice(0,5000);persist();updateCounts();return added;
+  },refreshStatus:renderStatus,openStatus:()=>setTab('status')});
   updateCounts();refresh();
   if('serviceWorker' in navigator && location.protocol==='https:'){
     window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
