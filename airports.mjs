@@ -1,0 +1,191 @@
+/** Curated airport coordinates. Approximate WGS84 location, used for great-circle estimates. */
+const RAW = `
+WAW|Warsaw Chopin|PL|EU|52.1657|20.9671
+WMI|Warsaw Modlin|PL|EU|52.4511|20.6517
+POZ|Poznań|PL|EU|52.4210|16.8263
+KRK|Kraków|PL|EU|50.0777|19.7848
+GDN|Gdańsk|PL|EU|54.3776|18.4662
+WRO|Wrocław|PL|EU|51.1027|16.8858
+KTW|Katowice|PL|EU|50.4743|19.0800
+RZE|Rzeszów|PL|EU|50.1100|22.0190
+SZZ|Szczecin|PL|EU|53.5847|14.9022
+BZG|Bydgoszcz|PL|EU|53.0968|17.9777
+LUZ|Lublin|PL|EU|51.2403|22.7144
+OTP|Bucharest Otopeni|RO|EU|44.5711|26.0850
+BBU|Bucharest Băneasa|RO|EU|44.5032|26.1021
+CLJ|Cluj-Napoca|RO|EU|46.7852|23.6862
+IAS|Iași|RO|EU|47.1785|27.6206
+TSR|Timișoara|RO|EU|45.8099|21.3379
+SBZ|Sibiu|RO|EU|45.7856|24.0913
+CRA|Craiova|RO|EU|44.3181|23.8886
+SCV|Suceava|RO|EU|47.6875|26.3541
+PRG|Prague|CZ|EU|50.1008|14.2632
+BRQ|Brno|CZ|EU|49.1513|16.6944
+BTS|Bratislava|SK|EU|48.1702|17.2127
+KSC|Košice|SK|EU|48.6631|21.2411
+BUD|Budapest|HU|EU|47.4399|19.2610
+VIE|Vienna|AT|EU|48.1103|16.5697
+GRZ|Graz|AT|EU|46.9911|15.4396
+BER|Berlin Brandenburg|DE|EU|52.3667|13.5033
+FRA|Frankfurt|DE|EU|50.0379|8.5622
+MUC|Munich|DE|EU|48.3538|11.7861
+DUS|Düsseldorf|DE|EU|51.2895|6.7668
+HAM|Hamburg|DE|EU|53.6304|9.9882
+STR|Stuttgart|DE|EU|48.6899|9.2220
+CGN|Cologne Bonn|DE|EU|50.8659|7.1427
+NUE|Nuremberg|DE|EU|49.4987|11.0669
+AMS|Amsterdam|NL|EU|52.3105|4.7683
+EIN|Eindhoven|NL|EU|51.4501|5.3745
+BRU|Brussels|BE|EU|50.9014|4.4844
+CRL|Charleroi|BE|EU|50.4592|4.4538
+LUX|Luxembourg|LU|EU|49.6266|6.2115
+ZRH|Zürich|CH|EU|47.4581|8.5555
+GVA|Geneva|CH|EU|46.2381|6.1090
+BSL|Basel|CH|EU|47.5896|7.5299
+CDG|Paris Charles de Gaulle|FR|EU|49.0097|2.5479
+ORY|Paris Orly|FR|EU|48.7233|2.3794
+NCE|Nice|FR|EU|43.6584|7.2159
+LYS|Lyon|FR|EU|45.7256|5.0811
+MRS|Marseille|FR|EU|43.4393|5.2214
+LHR|London Heathrow|GB|EU|51.4700|-0.4543
+LGW|London Gatwick|GB|EU|51.1481|-0.1903
+LCY|London City|GB|EU|51.5053|0.0553
+STN|London Stansted|GB|EU|51.8899|0.2389
+LTN|London Luton|GB|EU|51.8747|-0.3683
+MAN|Manchester|GB|EU|53.3537|-2.2750
+EDI|Edinburgh|GB|EU|55.9500|-3.3725
+BHX|Birmingham|GB|EU|52.4539|-1.7480
+BRS|Bristol|GB|EU|51.3827|-2.7191
+DUB|Dublin|IE|EU|53.4213|-6.2701
+ORK|Cork|IE|EU|51.8413|-8.4911
+MAD|Madrid|ES|EU|40.4983|-3.5676
+BCN|Barcelona|ES|EU|41.2974|2.0833
+AGP|Málaga|ES|EU|36.6749|-4.4991
+VLC|Valencia|ES|EU|39.4893|-0.4816
+SVQ|Seville|ES|EU|37.4179|-5.8931
+BIO|Bilbao|ES|EU|43.3011|-2.9106
+PMI|Palma de Mallorca|ES|EU|39.5517|2.7388
+ALC|Alicante|ES|EU|38.2822|-0.5582
+IBZ|Ibiza|ES|EU|38.8729|1.3731
+TFS|Tenerife South|ES|EU|28.0445|-16.5725
+LPA|Gran Canaria|ES|EU|27.9319|-15.3866
+LIS|Lisbon|PT|EU|38.7742|-9.1342
+OPO|Porto|PT|EU|41.2481|-8.6814
+FAO|Faro|PT|EU|37.0144|-7.9659
+FCO|Rome Fiumicino|IT|EU|41.8003|12.2389
+CIA|Rome Ciampino|IT|EU|41.7994|12.5949
+MXP|Milan Malpensa|IT|EU|45.6306|8.7281
+LIN|Milan Linate|IT|EU|45.4451|9.2767
+BGY|Bergamo|IT|EU|45.6739|9.7042
+VCE|Venice|IT|EU|45.5053|12.3519
+BLQ|Bologna|IT|EU|44.5354|11.2887
+NAP|Naples|IT|EU|40.8860|14.2908
+CTA|Catania|IT|EU|37.4668|15.0664
+ATH|Athens|GR|EU|37.9364|23.9445
+SKG|Thessaloniki|GR|EU|40.5197|22.9709
+HER|Heraklion|GR|EU|35.3397|25.1803
+SOF|Sofia|BG|EU|42.6967|23.4114
+BEG|Belgrade|RS|EU|44.8184|20.3091
+ZAG|Zagreb|HR|EU|45.7429|16.0688
+SPU|Split|HR|EU|43.5389|16.2980
+DBV|Dubrovnik|HR|EU|42.5614|18.2682
+LJU|Ljubljana|SI|EU|46.2237|14.4576
+TIA|Tirana|AL|EU|41.4147|19.7206
+SKP|Skopje|MK|EU|41.9616|21.6214
+SJJ|Sarajevo|BA|EU|43.8246|18.3315
+TGD|Podgorica|ME|EU|42.3594|19.2519
+PRN|Pristina|XK|EU|42.5728|21.0358
+OSL|Oslo|NO|EU|60.1939|11.1004
+BGO|Bergen|NO|EU|60.2934|5.2181
+CPH|Copenhagen|DK|EU|55.6180|12.6560
+ARN|Stockholm Arlanda|SE|EU|59.6519|17.9186
+GOT|Gothenburg|SE|EU|57.6628|12.2798
+HEL|Helsinki|FI|EU|60.3172|24.9633
+TLL|Tallinn|EE|EU|59.4133|24.8328
+RIX|Riga|LV|EU|56.9236|23.9711
+VNO|Vilnius|LT|EU|54.6341|25.2858
+KUN|Kaunas|LT|EU|54.9639|24.0848
+KEF|Reykjavik Keflavík|IS|EU|63.9850|-22.6056
+IST|Istanbul|TR|EU|41.2753|28.7519
+SAW|Istanbul Sabiha Gökçen|TR|EU|40.8986|29.3092
+AYT|Antalya|TR|EU|36.8987|30.8005
+ESB|Ankara|TR|EU|40.1281|32.9951
+TBS|Tbilisi|GE|EU|41.6692|44.9547
+KUT|Kutaisi|GE|EU|42.1767|42.4826
+EVN|Yerevan|AM|EU|40.1473|44.3959
+GYD|Baku|AZ|EU|40.4675|50.0467
+LCA|Larnaca|CY|EU|34.8751|33.6249
+TLV|Tel Aviv|IL|AS|32.0114|34.8867
+CAI|Cairo|EG|EU|30.1219|31.4056
+HRG|Hurghada|EG|EU|27.1783|33.7994
+SSH|Sharm el Sheikh|EG|EU|27.9773|34.3950
+RAK|Marrakech|MA|EU|31.6069|-8.0363
+CMN|Casablanca|MA|EU|33.3675|-7.5899
+TUN|Tunis|TN|EU|36.8510|10.2272
+ALG|Algiers|DZ|EU|36.6910|3.2154
+DXB|Dubai|AE|AS|25.2532|55.3657
+AUH|Abu Dhabi|AE|AS|24.4330|54.6511
+DOH|Doha|QA|AS|25.2731|51.6081
+RUH|Riyadh|SA|AS|24.9576|46.6988
+JED|Jeddah|SA|AS|21.6796|39.1565
+MCT|Muscat|OM|AS|23.5933|58.2844
+DEL|Delhi|IN|AS|28.5562|77.1000
+BOM|Mumbai|IN|AS|19.0896|72.8656
+BKK|Bangkok Suvarnabhumi|TH|AS|13.6900|100.7501
+SIN|Singapore|SG|AS|1.3644|103.9915
+HKG|Hong Kong|HK|AS|22.3080|113.9185
+HND|Tokyo Haneda|JP|AS|35.5494|139.7798
+NRT|Tokyo Narita|JP|AS|35.7720|140.3929
+ICN|Seoul Incheon|KR|AS|37.4602|126.4407
+PEK|Beijing Capital|CN|AS|40.0799|116.6031
+PKX|Beijing Daxing|CN|AS|39.5098|116.4105
+PVG|Shanghai Pudong|CN|AS|31.1443|121.8083
+CAN|Guangzhou|CN|AS|23.3924|113.2988
+TPE|Taipei Taoyuan|TW|AS|25.0797|121.2342
+KUL|Kuala Lumpur|MY|AS|2.7456|101.7072
+HAN|Hanoi|VN|AS|21.2212|105.8072
+SGN|Ho Chi Minh City|VN|AS|10.8188|106.6520
+PNH|Phnom Penh|KH|AS|11.5466|104.8441
+SAI|Siem Reap Angkor|KH|AS|13.3692|104.2211
+VTE|Vientiane|LA|AS|17.9883|102.5633
+LPQ|Luang Prabang|LA|AS|19.8973|102.1608
+DPS|Bali Denpasar|ID|AS|-8.7482|115.1672
+CGK|Jakarta|ID|AS|-6.1256|106.6559
+JNB|Johannesburg|ZA|AF|-26.1392|28.2460
+CPT|Cape Town|ZA|AF|-33.9648|18.6017
+NBO|Nairobi|KE|AF|-1.3192|36.9278
+ADD|Addis Ababa|ET|AF|8.9779|38.7993
+LOS|Lagos|NG|AF|6.5774|3.3212
+JFK|New York JFK|US|NA|40.6413|-73.7781
+EWR|Newark|US|NA|40.6895|-74.1745
+BOS|Boston|US|NA|42.3656|-71.0096
+ORD|Chicago O'Hare|US|NA|41.9742|-87.9073
+LAX|Los Angeles|US|NA|33.9416|-118.4085
+SFO|San Francisco|US|NA|37.6213|-122.3790
+MIA|Miami|US|NA|25.7954|-80.2900
+IAD|Washington Dulles|US|NA|38.9531|-77.4565
+ATL|Atlanta|US|NA|33.6407|-84.4277
+DFW|Dallas Fort Worth|US|NA|32.8998|-97.0403
+SEA|Seattle|US|NA|47.4502|-122.3088
+YYZ|Toronto|CA|NA|43.6777|-79.6248
+YUL|Montreal|CA|NA|45.4706|-73.7408
+YVR|Vancouver|CA|NA|49.1967|-123.1815
+MEX|Mexico City|MX|NA|19.4361|-99.0719
+GRU|São Paulo|BR|SA|-23.4356|-46.4731
+EZE|Buenos Aires|AR|SA|-34.8222|-58.5358
+SYD|Sydney|AU|OC|-33.9399|151.1753
+MEL|Melbourne|AU|OC|-37.6690|144.8410
+`.trim();
+
+export const AIRPORTS = Object.fromEntries(RAW.split('\n').map(line => {
+  const [code, city, country, zone, latitude, longitude] = line.split('|');
+  return [code, { code, city, country, zone, latitude: Number(latitude), longitude: Number(longitude) }];
+}));
+
+export function greatCircleMiles(from, to) {
+  const rad = v => v * Math.PI / 180;
+  const dLat = rad(to.latitude - from.latitude);
+  const dLon = rad(to.longitude - from.longitude);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(from.latitude)) * Math.cos(rad(to.latitude)) * Math.sin(dLon / 2) ** 2;
+  return Math.round(3958.7613 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}

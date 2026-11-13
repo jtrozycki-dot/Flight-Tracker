@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#091a25">
+  <meta name="description" content="LOT Polish Airlines flight miles and status calculator for Turkish Miles&Smiles and Miles & More. Private, offline and ready for your Home Screen.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Flight Miles">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="icon" href="./assets/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Flight Miles Tracker · LOT</title>
+</head>
+<body>
+  <div class="ambient glow-one" aria-hidden="true"></div><div class="ambient glow-two" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m3 18 17-13-5 17-3.9-7.2L3 18Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m11.1 14.8 4.6-4.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div><div class="brand-name">FLIGHT <span>MILES</span></div><div class="brand-sub">YOUR LOT LOYALTY COMPANION</div></div>
+      </div>
+      <div class="sync-tag"><span class="status-dot"></span> PRIVATE · OFFLINE READY</div>
+    </header>
+
+    <div class="hero">
+      <div><div class="eyebrow"><span class="eyebrow-line"></span> MILES&SMILES <span class="muted-x">×</span> MILES & MORE</div>
+        <h1>Make every <em>mile</em> count.</h1>
+        <p>Know exactly what your next LOT flight could earn, compare programmes and keep your status progress in sight.</p>
+      </div>
+      <div class="hero-mark" aria-hidden="true"><div class="planet-orbit"><div class="orbit-dot"></div><span>LO</span></div></div>
+    </div>
+
+    <nav class="tabs" aria-label="Main navigation">
+      <button class="tab active" type="button" data-tab="calculator" aria-current="page"><span class="tab-icon">✦</span> Calculator</button>
+      <button class="tab" type="button" data-tab="log"><span class="tab-icon">≡</span> Flight log <span id="log-count" class="count">0</span></button>
+      <button class="tab" type="button" data-tab="status"><span class="tab-icon">◎</span> Status tracker</button>
+    </nav>
+
+    <main>
+      <section id="panel-calculator" class="tab-panel">
+        <div class="calculator-layout">
+          <div class="card input-card">
+            <div class="card-heading"><div><span class="step">01 / FLIGHT DETAILS</span><h2>Plan your flight</h2></div><span class="section-icon">✈</span></div>
+            <div class="field-label">QUICK ROUTES</div>
+            <div class="presets" role="group" aria-label="Favourite routes">
+              <button type="button" class="preset selected" data-from="WAW" data-to="OTP">WAW <span>⇄</span> OTP</button>
+              <button type="button" class="preset" data-from="WAW" data-to="PRG">WAW <span>⇄</span> PRG</button>
+              <button type="button" class="preset" data-from="WAW" data-to="LHR">WAW <span>⇄</span> LHR</button>
+              <button type="button" class="preset" data-from="WAW" data-to="JFK">WAW <span>⇄</span> JFK</button>
+            </div>
+            <form id="flight-form" novalidate>
+              <div class="route-fields">
+                <label class="field"><span>FROM</span><input id="origin" list="airport-options" value="WAW" maxlength="3" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-label="Origin airport code"></label>
+                <button type="button" class="swap" id="swap" title="Swap airports" aria-label="Swap origin and destination">⇄</button>
+                <label class="field"><span>TO</span><input id="destination" list="airport-options" value="OTP" maxlength="3" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-label="Destination airport code"></label>
+              </div>
+              <datalist id="airport-options"></datalist>
+              <div id="route-names" class="route-names" aria-live="polite"></div>
+              <div class="full-field"><label for="booking-class" class="field-label">LOT BOOKING CLASS</label><select id="booking-class"></select><p class="hint">Use the letter printed next to your fare on the LOT e-ticket, not the cabin name alone.</p></div>
+              <div class="full-field"><div class="field-label">JOURNEY</div><div class="switcher" role="group" aria-label="Journey type"><button type="button" class="switch-option active" id="one-way" aria-pressed="true">One way</button><button type="button" class="switch-option" id="round-trip" aria-pressed="false">Return trip</button></div></div>
+              <details class="advanced" id="advanced">
+                <summary>More options <span class="chevron">⌄</span></summary>
+                <div class="advanced-content">
+                  <div class="full-field"><label for="mm-method" class="field-label">MILES & MORE TICKET BASIS</label>
+                    <select id="mm-method"><option value="class">LOT ticket / class-based (080)</option><option value="fare">Lufthansa Group booking / fare-based</option></select>
+                    <p class="hint">LOT-issued tickets starting 080 normally use booking class. Eligible Lufthansa Group ticket/booking channels use eligible fare in euros.</p>
+                  </div>
+                  <div class="full-field hidden" id="fare-field"><label for="fare-eur" class="field-label">TOTAL ELIGIBLE AIRFARE (€)</label><input id="fare-eur" type="number" step="0.01" min="0" placeholder="e.g. 210"><p class="hint">For a return trip, enter the eligible fare for both legs together. Exclude taxes and extras. Use EUR.</p>
+                    <label class="checkbox-line"><input type="checkbox" id="mm-status"> I already hold Miles & More frequent-flyer status (6× instead of 4×)</label>
+                  </div>
+                  <div class="field-pair">
+                    <div><label for="manual-distance" class="field-label">MANUAL DISTANCE (MILES)</label><input id="manual-distance" type="number" step="1" min="1" placeholder="Auto-calculated"><p class="hint">Optional, per one-way leg.</p></div>
+                    <div><label for="route-category" class="field-label">ROUTE CATEGORY</label><select id="route-category"><option value="auto">Automatic</option><option value="domestic">Within one European country</option><option value="europe">Between European countries</option><option value="same-continent">Outside Europe, same continent</option><option value="intercontinental">Intercontinental</option></select></div>
+                  </div>
+                </div>
+              </details>
+              <div id="calc-error" class="error hidden" role="alert"></div>
+              <div class="save-area">
+                <div class="save-title"><span class="step">02 / SAVE TO YOUR LOG</span><p>Keep your flight history on this device.</p></div>
+                <div class="field-pair date-row"><div><label for="depart-date" class="field-label">OUTBOUND DATE</label><input id="depart-date" type="date"></div><div id="return-date-wrap" class="hidden"><label for="return-date" class="field-label">RETURN DATE</label><input id="return-date" type="date"></div></div>
+                <div class="field-pair"><div><label for="credit-programme" class="field-label">CREDIT TO</label><select id="credit-programme"><option value="tk">Turkish Miles&Smiles</option><option value="mm">Miles & More</option></select></div><div><label for="flight-state" class="field-label">FLIGHT STATUS</label><select id="flight-state"><option value="planned">Planned</option><option value="flown">Already flown</option></select></div></div>
+                <button class="primary-button" id="save-flight" type="submit"><span>＋</span> Add flight to my log</button>
+                <div id="save-feedback" class="save-feedback" role="status" aria-live="polite"></div>
+              </div>
+            </form>
+          </div>
+
+          <div class="results-column" id="results">
+            <div class="card overview-card">
+              <div class="topline"><span class="step">YOUR EARNING ESTIMATE</span><span class="lot-tag">LOT POLISH AIRLINES</span></div>
+              <div class="route-display"><div><strong id="summary-origin">WAW</strong><small id="summary-origin-name">Warsaw</small></div><div class="route-mid"><span>✈</span><div class="dashed"></div></div><div class="right"><strong id="summary-destination">OTP</strong><small id="summary-dest-name">Bucharest</small></div></div>
+              <div class="trip-data"><span id="summary-cabin">ECONOMY · CLASS E</span><span id="summary-distance">575 MI · ONE WAY</span></div>
+            </div>
+            <div class="earning-card turkish-card"><div class="earning-top"><div><span class="programme-label">PROGRAMME 01</span><h3>Turkish <b>Miles&Smiles</b></h3></div><span class="earning-symbol">✦</span></div><div class="metric-main"><span id="tk-status" class="big-num">575</span><span class="metric-unit">STATUS MILES</span></div><div class="metric-divider"></div><div class="stat-line"><span>Award Miles</span><b id="tk-award">575</b></div><div class="stat-line"><span>Progress to Elite / Star Alliance Gold</span><b id="tk-contribution">1.4%</b></div></div>
+            <div class="earning-card mm-card"><div class="earning-top"><div><span class="programme-label">PROGRAMME 02</span><h3>Miles <b>& More</b></h3></div><span class="earning-symbol amber">◇</span></div><div class="metric-main"><span id="mm-award" class="big-num">750</span><span class="metric-unit">AWARD MILES</span></div><div class="metric-divider"></div><div class="mini-stats"><div><span>POINTS</span><strong id="mm-points">20</strong></div><div><span>QUALIFYING POINTS</span><strong id="mm-qual">20</strong></div><div><span>HON CIRCLE POINTS</span><strong id="mm-hon">0</strong></div></div></div>
+            <div id="result-note" class="note"><span class="note-icon">ⓘ</span><p><strong>Compare, then choose:</strong> one flight can only be credited to one loyalty programme. These are estimates, not guaranteed account credits.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-log" class="tab-panel hidden">
+        <div class="section-header"><div><span class="step">YOUR PERSONAL FLIGHT HISTORY</span><h2>Flight log</h2><p>Review flights recorded on this phone. Planned and flown trips remain separate.</p></div><div class="header-actions"><button class="outline-button" type="button" id="export-csv">Export CSV</button><button class="outline-button" type="button" id="export-json">Back up JSON</button><label class="outline-button file-label">Import JSON<input type="file" id="import-json" accept="application/json,.json" hidden></label></div></div>
+        <div id="log-summary" class="summary-grid"></div>
+        <div class="card log-card"><div class="list-heading"><h3>Recorded flight segments</h3><div class="legend"><span><i class="dot-earn"></i> Flown</span><span><i class="dot-plan"></i> Planned</span></div></div><div id="flight-list" class="flight-list"></div></div>
+        <p class="privacy-line">ⓘ Entries are saved only in this browser on this device. Use the JSON backup before clearing browser data or changing phones. No airline account is connected.</p>
+      </section>
+
+      <section id="panel-status" class="tab-panel hidden">
+        <div class="section-header"><div><span class="step">YOUR PROGRESS</span><h2>Status tracker</h2><p>Progress based on flights you log here, not your official programme balances.</p></div><div class="year-picker"><label for="status-year">MILES & MORE YEAR</label><select id="status-year"></select></div></div>
+        <div class="status-grid" id="status-cards"></div>
+        <div class="note tracker-note"><span class="note-icon">ⓘ</span><p>Turkish qualification uses a rolling 12 months; Miles & More uses a calendar year. Only eligible <strong>flown</strong> segments credited to the relevant programme are counted. Planned flights appear as projections; existing balances not entered in this app are not included.</p></div>
+      </section>
+    </main>
+
+    <footer><div class="footer-brand">FLIGHT MILES TRACKER <span>·</span> Built for LOT flyers</div><div class="footer-links"><a href="https://www.turkishairlines.com/en-lu/miles-and-smiles/program-partners/airlines/lot-polish-airlines/" target="_blank" rel="noopener">Turkish earning table ↗</a><a href="https://www.miles-and-more.com/pl/en/earn/lot-polish-airlines/partner/airlines/lot-polish-airlines/earn/basic-offer/lot-polish-airlines_earn_basic_4m.html" target="_blank" rel="noopener">Miles & More earning table ↗</a><a href="https://www.lot.com/pl/en/explore/loyalty-programmes/miles-and-more" target="_blank" rel="noopener">LOT Points table ↗</a></div><p>Rules checked 13 November 2026. Unofficial calculator. Great-circle distances are approximations and can differ from the distance used by the airlines. Special fares, codeshares, promotional bonuses and programme exceptions may differ. Verify against your actual account.</p></footer>
+  </div>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
