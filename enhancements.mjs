@@ -30,6 +30,16 @@ function readCount(line){
 }
 // OCR extraction is heuristic: only present proposed values, never persist them on recognition.
 export function extractBalances(text, programme='auto'){
+  // Multiple screenshots may come from different programmes. Keep their metrics separate.
+  if(programme==='auto' && /SCREENSHOT\s+2\b/i.test(String(text))){
+    const merged={};
+    for(const segment of String(text).split(/SCREENSHOT\s+\d+\s*/i).filter(s=>s.trim())){
+      const tk=/miles\s*[&+]\s*smiles|turkish\s*airlines|status\s*miles/i.test(segment);
+      const mm=/miles\s*[&+]\s*more|qualifying\s*points|hon\s*circle/i.test(segment);
+      if(tk!==mm)Object.assign(merged,extractBalances(segment,tk?'tk':'mm'));
+    }
+    if(Object.keys(merged).length)return merged;
+  }
   const original=String(text||'');
   const lines=original.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   const isTk=programme==='tk' || (programme==='auto' && /miles\s*[&+]\s*smiles|turkish\s*airlines|status\s*miles/i.test(original));
