@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#091a25">
   <meta name="description" content="LOT Polish Airlines flight miles and status calculator for Turkish Miles&Smiles and Miles & More. Private, offline and ready for your Home Screen.">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Flight Miles">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
@@ -109,9 +109,9 @@
       </section>
 
       <section id="panel-status" class="tab-panel hidden">
-        <div class="section-header"><div><span class="step">YOUR PROGRESS</span><h2>Status tracker</h2><p>Progress based on flights you log here, not your official programme balances.</p></div><div class="year-picker"><label for="status-year">MILES & MORE YEAR</label><select id="status-year"></select></div></div>
+        <div class="section-header"><div><span class="step">YOUR PROGRESS</span><h2>Status tracker</h2><p>Add your actual airline balances, then track new flights and future status.</p></div><div class="year-picker"><label for="status-year">MILES & MORE YEAR</label><select id="status-year"></select></div></div>
         <div class="status-grid" id="status-cards"></div>
-        <div class="note tracker-note"><span class="note-icon">ⓘ</span><p>Turkish qualification uses a rolling 12 months; Miles & More uses a calendar year. Only eligible <strong>flown</strong> segments credited to the relevant programme are counted. Planned flights appear as projections; existing balances not entered in this app are not included.</p></div>
+        <div class="note tracker-note"><span class="note-icon">ⓘ</span><p>Turkish qualification uses a rolling 12 months; Miles & More uses a calendar year. Only eligible <strong>flown</strong> segments credited to the relevant programme are counted. Planned flights appear as projections; Imported starting balances are included from their snapshot dates, avoiding double counting. Always verify official credits, redemptions and rolling-year expiry.</p></div>
       </section>
     </main>
 
