@@ -25,7 +25,7 @@ export function saveSnapshots(input){
 }
 function readCount(line){
   const matches=String(line).match(/\d{1,3}(?:[ ,.\u00a0]\d{3})+|\d{1,7}/g) || [];
-  const values=matches.map(getNumber).filter(n=>n>0 && n<10000000);
+  const values=matches.map(getNumber).filter(n=>n>=0 && n<10000000);
   return values.length ? values[0] : null;
 }
 // OCR extraction is heuristic: only present proposed values, never persist them on recognition.
@@ -137,7 +137,7 @@ export function initEnhancements({airports,fares,calculate,addImported,refreshSt
     $('snapshot-editor').scrollIntoView({behavior:'smooth',block:'start'});
   });
   $('ocr-add-flights').addEventListener('click',()=>{
-    const incoming=[]; const programme=$('ocr-programme').value==='mm'?'mm':'tk';
+    const incoming=[]; const requested=$('ocr-programme').value; const text=$('ocr-text').value; const tkDetected=/miles\s*[&+]\s*smiles|turkish\s*airlines/i.test(text); const mmDetected=/miles\s*[&+]\s*more|qualifying\s*points|hon\s*circle/i.test(text); if(requested==='auto'&&tkDetected&&mmDetected){$('ocr-feedback').textContent='Screenshots from both programmes detected. Select the programme above before importing flights.';return;} const programme=requested==='auto'?(mmDetected?'mm':'tk'):requested;
     for(let i=0;i<proposals.flights.length;i++){
       if(!document.querySelector(`[data-ocr-flight="${i}"]`)?.checked)continue;
       const f=proposals.flights[i];const klass=document.querySelector(`[data-ocr-class="${i}"]`)?.value;
